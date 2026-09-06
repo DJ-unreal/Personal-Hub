@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   Personal Hub — design tokens.  DARK "instrument panel" theme.
+
+   The design language is unchanged from the prototype — it is simply
+   inverted:
+
+   - Monochrome only: near-black canvas, off-white text, greys for
+     structure. NO accent colours anywhere.
+   - Alerts/warnings still render as INVERTED pills (bg-gray-900 +
+     text-white), which in this theme means a light pill with dark text.
+     Still never coloured — the inversion itself carries the alert.
+   - Mono (font-mono) for data, figures, and eyebrow/labels;
+     sans (font-sans) for prose and headings.
+   - Hairline rules (border-gray-100/200), sharp corners (no radius),
+     generous spacing.
+
+   HOW THE DARK THEME WORKS
+   ------------------------
+   Because the palette is strictly greyscale, the theme is implemented by
+   REDEFINING THE GREY RAMP rather than by rewriting component classes.
+   `gray-900` is now the LIGHTEST tone and `gray-50` the darkest, and
+   `white` is a near-black surface. Every existing utility therefore
+   inverts correctly and keeps its semantic role:
+
+       bg-white        → card / panel surface       (near-black)
+       text-gray-900   → primary text               (near-white)
+       border-gray-200 → hairline rule              (dark grey)
+       bg-gray-900 +
+         text-white    → inverted alert pill        (light on dark text)
+
+   Consequence to remember when editing components: a *higher* grey
+   number is a *lighter* colour here. Keep using the existing semantic
+   pairings and everything stays consistent. Do not introduce colour.
+   ===================================================================== */
+
+:root {
+  --background: #0a0a0a; /* page canvas — sits under the cards */
+  --foreground: #f0f0f0; /* off-white, not pure white (less glare) */
+  /* Force the dark instrument-panel palette regardless of OS theme. */
+  color-scheme: dark;
+}
+
+@theme {
+  /* --- Inverted greyscale ramp (900 = lightest, 50 = darkest) --------
+     Contrast on the card surface (#121212):
+       gray-400 ≈ 4.6:1   gray-500 ≈ 6.4:1
+       gray-600 ≈ 8.7:1   gray-900 ≈ 16.4:1
+     i.e. every text tier meets WCAG AA, including the faint one. */
+  --color-white: #121212; /* card / panel surface, and text on pills */
+  --color-black: #f7f7f7; /* inverted for consistency (currently unused) */
+
+  --color-gray-50: #1a1a1a; /* subtle raised panel, row hover */
+  --color-gray-100: #242424; /* faintest hairline */
+  --color-gray-200: #2e2e2e; /* hairline rules, progress track */
+  --color-gray-300: #414141; /* input + control borders */
+  --color-gray-400: #7d7d7d; /* faint/de-emphasised text, icons */
+  --color-gray-500: #979797; /* muted labels */
+  --color-gray-600: #b1b1b1; /* secondary text */
+  --color-gray-700: #cacaca; /* body text */
+  --color-gray-800: #e1e1e1; /* strong text */
+  --color-gray-900: #f0f0f0; /* primary text, inverted-pill background */
+  --color-gray-950: #f7f7f7;
+
+  /* Page canvas, one step darker than the cards so the hairline-bordered
+     panels lift very slightly instead of reading as one flat sheet. */
+  --color-canvas: var(--background);
+
+  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+
+  /* Sharp corners everywhere — override Tailwind's default radii. */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Placeholders sit at the faint tier rather than the browser default. */
+::placeholder {
+  color: #6f6f6f;
+  opacity: 1;
+}
+
+/* Chrome forces a pale background on autofilled fields — override it so
+   the master-password input doesn't flash white. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px #121212 inset;
+  caret-color: var(--foreground);
+}

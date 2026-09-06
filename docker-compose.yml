@@ -1,0 +1,65 @@
+# Personal Hub — self-hosting stack.
+#
+#   docker compose up -d --build
+#
+# Secrets come from .env.local (never baked into the image). The container
+# paths below are set under `environment:` deliberately: those values take
+# precedence over anything in env_file, so the Windows paths in .env.local
+# (HUB_DATA_DIR / HEALTH_DOCS_DIR) can't leak in and break the container.
+
+services:
+  hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: personal-hub:latest
+    container_name: personal-hub
+    restart: unless-stopped
+
+    # Secrets: SESSION_SECRET, ENCRYPTION_KEY, the argon2 hashes, Google
+    # OAuth credentials and SMTP settings.
+    env_file:
+      - .env.local
+
+    environment:
+      NODE_ENV: production
+      # Container-internal paths — must override whatever .env.local says.
+      HUB_DATA_DIR: /data
+      HEALTH_DOCS_DIR: /health-docs
+      # The session cookie is marked `secure` in production, so it is dropped
+      # over plain HTTP. Uncomment ONLY if you serve this over http:// on a
+      # network you trust; without TLS the session cookie is exposed.
+      # COOKIE_SECURE: "false"
+      #
+      # Set this to the public origin's callback when not on localhost, and
+      # add the identical URL to the Google OAuth client's authorised
+      # redirect URIs, or connecting the calendar will fail.
+      # GOOGLE_OAUTH_REDIRECT_URI: https://hub.example.com/api/calendar/callback
+
+    ports:
+      - "${HUB_PORT:-3000}:3000"
+
+    volumes:
+      # SQLite database. Defaults to a Docker-managed named volume; set
+      # HUB_DATA_HOST_DIR to a host path if you'd rather back it up directly.
+      # Never point this at a cloud-synced folder (OneDrive, Dropbox…).
+      - ${HUB_DATA_HOST_DIR:-hub-data}:/data
+      # Health documents stay on your disk and are mounted READ-ONLY — the
+      # app only ever reads them.
+      - ${HEALTH_DOCS_HOST_DIR:-./health-docs}:/health-docs:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/auth/session').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  hub-data:

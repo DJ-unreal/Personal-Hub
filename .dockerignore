@@ -1,0 +1,29 @@
+# Host-built artefacts must never enter the build context: node_modules and
+# .next contain platform-specific native binaries (argon2, sharp) that would
+# not run inside a Linux container.
+node_modules
+.next
+out
+build
+
+# Secrets — supplied at runtime via env_file / environment, never baked in.
+.env
+.env.*
+!.env.example
+
+# The user's data and documents are mounted as volumes, not copied.
+data
+health-docs
+
+# Local noise
+.git
+.gitignore
+.claude
+npm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
+README.md
+TODO.md
+Dockerfile
+docker-compose.yml
+.dockerignore
